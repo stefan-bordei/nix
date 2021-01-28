@@ -1,2 +1,4 @@
-# nix
-Configuration file for NixOS
+# Configuration file for NixOS
+
+
+## `configuration.nix`
