@@ -4,14 +4,37 @@
 
 { config, pkgs, ... }:
 
+let 
+   unstable = import <nixos-unstable> { config = { allowUnfree = true; }; };
+in
+
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      ./vim.nix
     ];
+  
 
   # allow unfree
   nixpkgs.config.allowUnfree = true;
+  hardware.opengl.driSupport32Bit = true;
+
+  # nvidia
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia.prime = {
+    sync.enable = true;
+
+    # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+    nvidiaBusId = "PCI:1:0:0";
+
+    # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+    intelBusId = "PCI:0:2:0";
+  };  
+
+  # overlays
+  nixpkgs.overlays = [ (import /home/zygot/.config/nixpkgs/overlays/default.nix) ];
+
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -60,7 +83,10 @@
     tmate
     neofetch
     ntfs3g
-    
+    pciutils
+    lshw
+    lutris
+
     # apps
     kitty
     neovim
@@ -75,19 +101,22 @@
     xclip
     qalculate-gtk
     kate
+    unstable.teams
     
     # web
     firefox
     thunderbird
     qbittorrent
     discord
-    zoom-us
+    unstable.zoom-us
+    slack
+    unstable.skypeforlinux
+    #google-chrome
     
     # media
     mpv
     strawberry
     gimp
-    reaper
     
     # desktop themes
     adwaita-qt
@@ -96,14 +125,44 @@
     python38
     poppler_utils
     conda
-    jetbrains.pycharm-community
-    (python38.withPackages(ps: with ps; [ pynvim virtualenvwrapper pip jupyterlab pdftotext nltk ]))
+    graphviz
+    #jetbrains.pycharm-community
+    (python38.withPackages(ps: with ps; [ pynvim virtualenvwrapper 
+    					pip jupyterlab pdftotext nltk 
+					pyperf pysnmp scapy ]))
     
-    # C
-    gcc
+    # networking
+    #unstable.wireshark
+    tcpdump
 
-    # java
-    jdk14
+    # containers
+    unstable.docker
+    unstable.docker-compose
+
+    # java 11
+    #unstable.jetbrains.idea-community
+    #unstable.jdk11
+
+    # build tools
+    unstable.gcc
+    unstable.bazel_4
+    unstable.qemu
+    unstable.nasm
+
+    # music/recording
+    #unstable.alsa-lib
+    unstable.reaper
+    #unstable.ardour
+    unstable.guitarix
+    #unstable.cadence
+    unstable.libjack2
+    unstable.jack2
+    unstable.qjackctl
+
+    #LV2 plugins
+    unstable.glibc
+    drumgizmo
+    unstable.gxplugins-lv2
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -132,6 +191,7 @@
   # Enable sound.
   sound.enable = true;
   hardware.pulseaudio.enable = true;
+  hardware.bluetooth.enable = true;
 
   # Enable the X11 windowing system.
   services.xserver.enable = true;
@@ -147,13 +207,39 @@
   #services.xserver.desktopManager.lxqt.enable = true;  
 
   # virtualization
-  virtualisation.virtualbox.host.enable = true;
-  users.extraGroups.vboxusers.members = [ "zygot" ];
+  virtualisation.lxd.enable = true;
+  virtualisation.docker.enable = true;
+
+  # audio setup for DAW
+  #systemd.user.services.pulseaudio.environment = {
+  #  JACK_PROMISCUOUS_SERVER = "jackaudio";
+  #};
+
+  #services.jack = {
+  #  jackd.enable = true;
+  #  # support ALSA only programs via ALSA JACK PCM plugin
+  #  alsa.enable = false;
+  #  loopback = {
+  #    enable = true;
+      # buffering parameters for dmix device to work with ALSA only semi-professional sound programs
+      #dmixConfig = ''
+      #  period_size 2048
+      #'';
+  #  };
+  #};
+
+  # memloc for guitar amp sim
+  #security.pam.loginLimits = [
+  #  { domain = "@audio"; item = "memlock"; type = "-"; value = "unlimited"; }
+    #{ domain = "@audio"; item = "rtprio"; type = "-"; value = "99"; }
+    #{ domain = "@audio"; item = "nofile"; type = "soft"; value = "99999"; }
+    #{ domain = "@audio"; item = "nofile"; type = "hard"; value = "99999"; }
+  #];
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.zygot = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" "virtualbox" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" "lxd" "docker" "jackaudio" ]; # Enable ‘sudo’ for the user.
   };
 
   # This value determines the NixOS release from which the default
@@ -165,4 +251,3 @@
   system.stateVersion = "20.09"; # Did you read the comment?
 
 }
-
