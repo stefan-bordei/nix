@@ -12,9 +12,31 @@ in
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./vim.nix
     ];
+
+  # Bootloader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.efi.efiSysMountPoint = "/boot/efi";
+
+  # Setup keyfile
+  boot.initrd.secrets = {
+    "/crypto_keyfile.bin" = null;
+  };
+
+  # Enable swap on luks
+  boot.initrd.luks.devices."luks-b41cf233-de4e-4634-966c-ba1ae7e8ef3d".device = "/dev/disk/by-uuid/b41cf233-de4e-4634-966c-ba1ae7e8ef3d";
+  boot.initrd.luks.devices."luks-b41cf233-de4e-4634-966c-ba1ae7e8ef3d".keyFile = "/crypto_keyfile.bin";
   
+  # mount /data
+  fileSystems = {
+    "/mnt/data" = {
+      device = "/dev/disk/by-label/data";
+      fsType = "ext4";
+    };
+  };
+
+  boot.supportedFilesystems = [ "ntfs" ];
 
   # allow unfree
   nixpkgs.config.allowUnfree = true;
@@ -33,14 +55,17 @@ in
   };  
 
   # overlays
-  nixpkgs.overlays = [ (import /home/zygot/.config/nixpkgs/overlays/default.nix) ];
+  #nixpkgs.overlays = [ (import /home/zygot/.config/nixpkgs/overlays/default.nix) ];
+  
+  # Enable flakes for home-manager
+  nix = {
+    package = pkgs.nixFlakes;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
 
-
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.timeout = 300;
-
+  # Networking
   # networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;
@@ -59,7 +84,7 @@ in
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
-    font = "Lat2-Terminus16";
+    font = "jetbrains-mono";
     keyMap = "us";
   };
 
@@ -72,97 +97,20 @@ in
     # system utilities
     wget
     vim
+    gnome.gnome-keyring
     htop
-    mc
     tmux
     gitFull
-    parallel
-    zip
-    unzip
-    p7zip
     tmate
     neofetch
     ntfs3g
-    pciutils
-    lshw
-    lutris
 
     # apps
-    kitty
-    neovim
-    neovim-qt
-    youtube-dl
-    nomacs
-    mupdf
-    zathura
-    qpdfview
-    llpp
-    xdotool
-    xclip
-    qalculate-gtk
-    kate
-    unstable.teams
-    
-    # web
-    firefox
-    thunderbird
-    qbittorrent
-    discord
-    unstable.zoom-us
-    slack
-    unstable.skypeforlinux
-    #google-chrome
-    
-    # media
-    mpv
-    strawberry
-    gimp
-    
-    # desktop themes
-    adwaita-qt
-    
-    # python
-    python38
-    poppler_utils
-    conda
-    graphviz
-    #jetbrains.pycharm-community
-    (python38.withPackages(ps: with ps; [ pynvim virtualenvwrapper 
-    					pip jupyterlab pdftotext nltk 
-					pyperf pysnmp scapy ]))
-    
+    #discord
+   
     # networking
     #unstable.wireshark
     tcpdump
-
-    # containers
-    unstable.docker
-    unstable.docker-compose
-
-    # java 11
-    #unstable.jetbrains.idea-community
-    #unstable.jdk11
-
-    # build tools
-    unstable.gcc
-    unstable.bazel_4
-    unstable.qemu
-    unstable.nasm
-
-    # music/recording
-    #unstable.alsa-lib
-    unstable.reaper
-    #unstable.ardour
-    unstable.guitarix
-    #unstable.cadence
-    unstable.libjack2
-    unstable.jack2
-    unstable.qjackctl
-
-    #LV2 plugins
-    unstable.glibc
-    drumgizmo
-    unstable.gxplugins-lv2
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -204,37 +152,16 @@ in
   # Enable the KDE Desktop Environment.
   services.xserver.displayManager.sddm.enable = true;
   services.xserver.desktopManager.plasma5.enable = true;
-  #services.xserver.desktopManager.lxqt.enable = true;  
+  #services.xserver.desktopManager.lxqt.enable = true;
+  #services.xserver.desktopManager.xterm.enable = true;
+  #services.xserver.windowManager.qtile.enable = true;
+    
+   services.gnome.gnome-keyring.enable = true;
+
 
   # virtualization
   virtualisation.lxd.enable = true;
   virtualisation.docker.enable = true;
-
-  # audio setup for DAW
-  #systemd.user.services.pulseaudio.environment = {
-  #  JACK_PROMISCUOUS_SERVER = "jackaudio";
-  #};
-
-  #services.jack = {
-  #  jackd.enable = true;
-  #  # support ALSA only programs via ALSA JACK PCM plugin
-  #  alsa.enable = false;
-  #  loopback = {
-  #    enable = true;
-      # buffering parameters for dmix device to work with ALSA only semi-professional sound programs
-      #dmixConfig = ''
-      #  period_size 2048
-      #'';
-  #  };
-  #};
-
-  # memloc for guitar amp sim
-  #security.pam.loginLimits = [
-  #  { domain = "@audio"; item = "memlock"; type = "-"; value = "unlimited"; }
-    #{ domain = "@audio"; item = "rtprio"; type = "-"; value = "99"; }
-    #{ domain = "@audio"; item = "nofile"; type = "soft"; value = "99999"; }
-    #{ domain = "@audio"; item = "nofile"; type = "hard"; value = "99999"; }
-  #];
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.zygot = {
@@ -248,6 +175,6 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "20.09"; # Did you read the comment?
+  system.stateVersion = "22.05"; # Did you read the comment?
 
 }

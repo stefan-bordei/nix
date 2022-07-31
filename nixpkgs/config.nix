@@ -1,0 +1,1 @@
+configs/nix/config.nix
