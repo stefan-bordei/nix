@@ -43,7 +43,7 @@ in
   hardware.opengl.driSupport32Bit = true;
 
   # nvidia
-  services.xserver.videoDrivers = [ "nvidia" ];
+  #services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia.prime = {
     sync.enable = true;
 
@@ -142,22 +142,85 @@ in
   hardware.bluetooth.enable = true;
 
   # Enable the X11 windowing system.
-  services.xserver.enable = true;
-  services.xserver.layout = "us";
-  services.xserver.xkbOptions = "eurosign:e";
+  #services.xserver.enable = true;
+  #services.xserver.layout = "us";
+  #services.xserver.xkbOptions = "eurosign:e";
 
   # Enable touchpad support.
-  services.xserver.libinput.enable = true;
+  #services.xserver.libinput.enable = true;
 
   # Enable the KDE Desktop Environment.
-  services.xserver.displayManager.sddm.enable = true;
-  services.xserver.desktopManager.plasma5.enable = true;
+  #services.xserver.displayManager.sddm.enable = true;
+  #services.xserver.desktopManager.plasma5.enable = true;
   #services.xserver.desktopManager.lxqt.enable = true;
-  #services.xserver.desktopManager.xterm.enable = true;
-  #services.xserver.windowManager.qtile.enable = true;
     
-   services.gnome.gnome-keyring.enable = true;
+  # tiling WM
+  environment.pathsToLink = [ "/libexec" ];
+  services.gnome.gnome-keyring.enable = true;
+  services = {
+    # x11
+    xserver = {
+      enable = true;
+      layout = "us";
+      #videoDrivers = [ "nvidia" ];
+      #hardware.nvidia.prime = {
+      #  sync.enable = true;
 
+      # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
+      #  nvidiaBusId = "PCI:1:0:0";
+
+      # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
+      #  intelBusId = "PCI:0:2:0";
+      #}; 
+      deviceSection = ''
+        Option "TearFree" "true"
+      '';
+
+      displayManager = {
+        lightdm = {
+          enable = true;
+          greeters.mini = {
+            enable = true;
+            user = "zygot";
+            extraConfig = ''
+              [greeter]
+              show-password-label=false
+              active-monitor=1
+              [greeter-theme]
+              background-image = ""
+              '';
+          };
+        };
+	defaultSession = "xfce+i3";
+	#sessionCommands = "${pkgs.xorg.xmodmap}/bin/xmodmap ${myCustomLayout}";
+      };
+
+      desktopManager = {
+        xterm.enable = false;
+        xfce = {
+	  enable = true;
+	  noDesktop = true;
+	  enableXfwm = false;
+	};
+      };
+
+      windowManager.i3 = {
+        enable = true;
+	extraPackages = with pkgs; [
+	  dmenu #application launcher most people use
+	  #i3status # gives you the default i3 status bar
+	  i3lock #default i3 screen locker
+	  #i3blocks #if you are planning on using i3blocks over i3status
+	  dunst
+	  rofi
+	  rofi-pass
+	  (polybar.override { i3Support = true; })
+	  clipmenu
+	  udiskie
+	];
+      };
+    };
+  };
 
   # virtualization
   virtualisation.lxd.enable = true;
