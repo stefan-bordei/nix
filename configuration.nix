@@ -15,23 +15,43 @@ in
     ];
 
   # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  boot.kernelPackages = unstable.linuxPackages_latest;
+  boot.initrd.kernelModules = [ "dm_thin_pool" ];
+  boot.extraModulePackages = [ config.boot.kernelPackages.nvidia_x11 ];
+  boot.extraModprobeConfig = /* modconf */ ''
+		options usb-storage quirks=174c:55aa:u
+	'';
 
-  # Setup keyfile
-  boot.initrd.secrets = {
-    "/crypto_keyfile.bin" = null;
+  boot.kernel.sysctl = {
+    "kernel.sysrq" = 1;
   };
 
+  boot.loader = {
+	grub = {
+          efiSupport = true;
+          efiInstallAsRemovable = true;
+	  memtest86.enable = true;
+	};
+	efi.canTouchEfiVariables = false;
+	systemd-boot = {
+	  enable = true;
+	  memtest86.enable = true;
+	};
+  };
+
+  # Setup keyfile
+  #boot.initrd.secrets = {
+  #  "/crypto_keyfile.bin" = null;
+  #};
+
   # Enable swap on luks
-  boot.initrd.luks.devices."luks-b41cf233-de4e-4634-966c-ba1ae7e8ef3d".device = "/dev/disk/by-uuid/b41cf233-de4e-4634-966c-ba1ae7e8ef3d";
-  boot.initrd.luks.devices."luks-b41cf233-de4e-4634-966c-ba1ae7e8ef3d".keyFile = "/crypto_keyfile.bin";
+  #boot.initrd.luks.devices."luks-b41cf233-de4e-4634-966c-ba1ae7e8ef3d".device = "/dev/disk/by-uuid/b41cf233-de4e-4634-966c-ba1ae7e8ef3d";
+  #boot.initrd.luks.devices."luks-b41cf233-de4e-4634-966c-ba1ae7e8ef3d".keyFile = "/crypto_keyfile.bin";
   
   # mount /data
   fileSystems = {
-    "/mnt/data" = {
-      device = "/dev/disk/by-label/data";
+    "/data" = {
+      device = "/dev/disk/by-uuid/15a3428a-1f8f-4833-a155-5f109f32eb08";
       fsType = "ext4";
     };
   };
@@ -40,18 +60,24 @@ in
 
   # allow unfree
   nixpkgs.config.allowUnfree = true;
-  hardware.opengl.driSupport32Bit = true;
+  hardware.opengl = {
+    enable = true;
+    driSupport = true;
+    driSupport32Bit = true;
+  };
 
   # nvidia
-  #services.xserver.videoDrivers = [ "nvidia" ];
   hardware.nvidia.prime = {
-    sync.enable = true;
+    #open = false;
+    #nvidiaSettings = true;
+    #package = config.boot.kernelPackages.nvidiaPackages.stable;
+    #sync.enable = true;
 
     # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
     nvidiaBusId = "PCI:1:0:0";
 
     # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
-    intelBusId = "PCI:0:2:0";
+    #intelBusId = "PCI:0:2:0";
   };  
 
   # overlays
@@ -74,8 +100,8 @@ in
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.useDHCP = false;
-  networking.interfaces.enp3s0.useDHCP = true;
-  networking.interfaces.wlp2s0.useDHCP = true;
+  networking.interfaces.eno1.useDHCP = false;
+  #networking.interfaces.wlp2s0.useDHCP = true;
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -99,17 +125,18 @@ in
     vim
     gnome.gnome-keyring
     htop
-    tmux
     gitFull
     tmate
     neofetch
     ntfs3g
+    firefox
 
-    # apps
-    #discord
-   
-    # networking
-    #unstable.wireshark
+    # gaming
+    heroic
+    #wine
+    #wine64
+    lxqt.pavucontrol-qt
+
     tcpdump
   ];
 
@@ -138,8 +165,17 @@ in
 
   # Enable sound.
   sound.enable = true;
-  hardware.pulseaudio.enable = true;
-  hardware.bluetooth.enable = true;
+  #hardware.pulseaudio.enable = true;
+  security.rtkit.enable = true;
+  services.pipewire = {
+      enable = true;
+      pulse.enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      wireplumber.enable = true;
+    };
+  #hardware.bluetooth.enable = true;
+
 
   # Enable the X11 windowing system.
   #services.xserver.enable = true;
@@ -162,18 +198,25 @@ in
     xserver = {
       enable = true;
       layout = "us";
-      #videoDrivers = [ "nvidia" ];
-      #hardware.nvidia.prime = {
-      #  sync.enable = true;
+      
+      videoDrivers = [ "nvidia" ];
 
-      # Bus ID of the NVIDIA GPU. You can find it using lspci, either under 3D or VGA
-      #  nvidiaBusId = "PCI:1:0:0";
-
-      # Bus ID of the Intel GPU. You can find it using lspci, either under 3D or VGA
-      #  intelBusId = "PCI:0:2:0";
-      #}; 
       deviceSection = ''
         Option "TearFree" "true"
+      '';
+
+      config = ''
+        Section "Device"
+            Identifier "nvidia"
+            Driver "nvidia"
+            BusID "PCI:1:0:0"
+            Option "AllowEmptyInitialConfiguration"
+        EndSection
+      '';
+      screenSection = ''
+        Option         "metamodes" "nvidia-auto-select +0+0 {ForceFullCompositionPipeline=On}"
+        Option         "AllowIndirectGLXProtocol" "off"
+        Option         "TripleBuffer" "on"
       '';
 
       displayManager = {
@@ -229,7 +272,7 @@ in
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.zygot = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "audio" "video" "networkmanager" "lxd" "docker" "jackaudio" ]; # Enable ‘sudo’ for the user.
+    extraGroups = [ "wheel" "audio" "video" "networkmanager" "lxd" "docker" ]; # Enable ‘sudo’ for the user.
   };
 
   # This value determines the NixOS release from which the default
@@ -241,3 +284,4 @@ in
   system.stateVersion = "22.05"; # Did you read the comment?
 
 }
+
