@@ -17,6 +17,12 @@
       };
     in
     {
+    nixosConfigurations.lair = nixpkgs.lib.nixosSystem {
+      specialArgs = { inherit system; };
+      modules = [
+	./machines/lair/configuration.nix
+      ];
+    };
     nixosConfigurations.hivecluster = nixpkgs.lib.nixosSystem {
       specialArgs = { inherit system; };
       modules = [
