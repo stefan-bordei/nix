@@ -15,6 +15,9 @@
   boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.efi.efiSysMountPoint = "/boot/efi";
 
+  # Kernel
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
   # Setup keyfile
   boot.initrd.secrets = {
     "/crypto_keyfile.bin" = null;
