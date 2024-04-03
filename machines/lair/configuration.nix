@@ -36,6 +36,8 @@
     '';
   };
 
+  programs.steam.enable = true;
+
   services = {
     gvfs.enable = true;
     udisks2.enable = true;
@@ -85,7 +87,11 @@
     enable = true;
     driSupport = true;
     driSupport32Bit = true;
+    extraPackages32 = with pkgs.pkgsi686Linux; [ libva driversi686Linux.amdvlk ]; # steam
+    extraPackages = with pkgs; [ rocm-opencl-icd rocm-opencl-runtime amdvlk ];
   };
+
+  environment.variables.AMD_VULKAN_ICD = "RADV";
 
   xdg = {
     portal = {
@@ -123,7 +129,7 @@
   users.users.zygot = {
     isNormalUser = true;
     description = "zygot";
-    extraGroups = [ "networkmanager" "wheel" "storage" "lxd" "docker"];
+    extraGroups = [ "networkmanager" "wheel" "storage" "lxd" "docker" "audio"];
     packages = with pkgs; [
      # kate
      # thunderbird
