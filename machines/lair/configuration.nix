@@ -37,6 +37,7 @@
   };
 
   programs.steam.enable = true;
+  hardware.keyboard.qmk.enable = true;
 
   services = {
     gvfs.enable = true;
