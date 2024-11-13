@@ -30,16 +30,20 @@
 
   # Enable flakes for home-manager
   nix = {
-    package = pkgs.nixFlakes;
+    package = pkgs.nixVersions.stable;
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
   };
 
-  programs.steam.enable = true;
+  programs = {
+    dconf.enable = true;
+    steam.enable = true;
+  };
   hardware.keyboard.qmk.enable = true;
 
   services = {
+    dbus.enable = true;
     gvfs.enable = true;
     udisks2.enable = true;
     # Battery
@@ -93,15 +97,6 @@
   };
 
   environment.variables.AMD_VULKAN_ICD = "RADV";
-
-  xdg = {
-    portal = {
-      enable = true;
-      wlr.enable = true;
-      extraPortals =
-        [ pkgs.xdg-desktop-portal-gtk pkgs.xdg-desktop-portal-wlr ];
-    };
-  };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
