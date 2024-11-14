@@ -5,10 +5,10 @@
 { config, pkgs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
 
   # Bootloader.
   boot.loader.systemd-boot.enable = true;
@@ -48,26 +48,26 @@
     udisks2.enable = true;
     # Battery
     tlp = {
-          enable = true;
-          settings = {
-            CPU_SCALING_GOVERNOR_ON_AC = "performance";
-            CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+      enable = true;
+      settings = {
+        CPU_SCALING_GOVERNOR_ON_AC = "performance";
+        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
 
-            CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
-            CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
+        CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
 
-            CPU_MIN_PERF_ON_AC = 0;
-            CPU_MAX_PERF_ON_AC = 100;
-            CPU_MIN_PERF_ON_BAT = 0;
-            CPU_MAX_PERF_ON_BAT = 20;
+        CPU_MIN_PERF_ON_AC = 0;
+        CPU_MAX_PERF_ON_AC = 100;
+        CPU_MIN_PERF_ON_BAT = 0;
+        CPU_MAX_PERF_ON_BAT = 20;
 
-           #Optional helps save long term battery health
-           START_CHARGE_THRESH_BAT0 = 40; # 40 and bellow it starts to charge
-           STOP_CHARGE_THRESH_BAT0 = 80; # 80 and above it stops charging
+        #Optional helps save long term battery health
+        START_CHARGE_THRESH_BAT0 = 40; # 40 and bellow it starts to charge
+        STOP_CHARGE_THRESH_BAT0 = 80; # 80 and above it stops charging
 
-          };
-        };
+      };
     };
+  };
 
   # touchpad support
   boot.kernelParams = [ "psmouse.synaptics_intertouch=0" ];
@@ -92,8 +92,13 @@
     enable = true;
     #driSupport = true;
     driSupport32Bit = true;
-    extraPackages32 = with pkgs.pkgsi686Linux; [ libva driversi686Linux.amdvlk ]; # steam
-    extraPackages = with pkgs; [ rocm-opencl-icd rocm-opencl-runtime amdvlk ];
+    extraPackages32 = with pkgs.pkgsi686Linux; [
+      libva
+      driversi686Linux.amdvlk
+    ]; # steam
+    extraPackages = with pkgs; [
+      amdvlk
+    ];
   };
 
   environment.variables.AMD_VULKAN_ICD = "RADV";
@@ -127,10 +132,17 @@
   users.users.zygot = {
     isNormalUser = true;
     description = "zygot";
-    extraGroups = [ "networkmanager" "wheel" "storage" "lxd" "docker" "audio"];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      "storage"
+      "lxd"
+      "docker"
+      "audio"
+    ];
     packages = with pkgs; [
-     # kate
-     # thunderbird
+      # kate
+      # thunderbird
     ];
   };
 
@@ -143,7 +155,7 @@
     vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
     wget
     git
- ];
+  ];
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
