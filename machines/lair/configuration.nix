@@ -25,8 +25,10 @@
   };
 
   # Enable swap on luks
-  boot.initrd.luks.devices."luks-e4e96ef9-adfd-4bd8-9ba9-e4ae2fdd0d57".device = "/dev/disk/by-uuid/e4e96ef9-adfd-4bd8-9ba9-e4ae2fdd0d57";
-  boot.initrd.luks.devices."luks-e4e96ef9-adfd-4bd8-9ba9-e4ae2fdd0d57".keyFile = "/crypto_keyfile.bin";
+  boot.initrd.luks.devices."luks-e4e96ef9-adfd-4bd8-9ba9-e4ae2fdd0d57".device =
+    "/dev/disk/by-uuid/e4e96ef9-adfd-4bd8-9ba9-e4ae2fdd0d57";
+  boot.initrd.luks.devices."luks-e4e96ef9-adfd-4bd8-9ba9-e4ae2fdd0d57".keyFile =
+    "/crypto_keyfile.bin";
 
   # Enable flakes for home-manager
   nix = {
@@ -108,6 +110,10 @@
 
   # Enable sound with pipewire.
   #sound.enable = true;
+  hardware.bluetooth.enable = true; # enables support for Bluetooth
+  #hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+  services.blueman.enable = true;
+
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
