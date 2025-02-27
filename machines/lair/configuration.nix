@@ -108,6 +108,21 @@
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
+  # Enable scanning
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+    nssmdns = true;
+    openFirewall = true;
+  };
+
+  #hardware.sane = {
+  #  enable = true;
+  #  extraBackends = [ pkgs.hplipWithPlugin ];
+  #};
+
+  #services.udev.packages = [ pkgs.sane-airscan ];
+
   # Enable sound with pipewire.
   #sound.enable = true;
   hardware.bluetooth.enable = true; # enables support for Bluetooth
@@ -145,6 +160,8 @@
       "lxd"
       "docker"
       "audio"
+      "scanner"
+      "lp"
     ];
     packages = with pkgs; [
       # kate
