@@ -88,12 +88,12 @@
   time.timeZone = "Europe/Dublin";
 
   # Select internationalisation properties.
-  i18n.defaultLocale = "en_IE.utf8";
+  i18n.defaultLocale = "en_IE.UTF-8";
 
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
     #driSupport = true;
-    driSupport32Bit = true;
+    enable32Bit = true;
     extraPackages32 = with pkgs.pkgsi686Linux; [
       libva
       driversi686Linux.amdvlk
@@ -112,7 +112,6 @@
   services.avahi = {
     enable = true;
     nssmdns4 = true;
-    nssmdns = true;
     openFirewall = true;
   };
 
@@ -129,7 +128,7 @@
   #hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
   services.blueman.enable = true;
 
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
