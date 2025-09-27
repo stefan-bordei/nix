@@ -143,6 +143,15 @@
     #media-session.enable = true;
   };
 
+  xdg = {
+    portal = {
+      enable = true;
+      wlr.enable = true;
+      extraPortals =
+        [ pkgs.xdg-desktop-portal-gtk pkgs.xdg-desktop-portal-wlr ];
+    };
+  };
+
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
