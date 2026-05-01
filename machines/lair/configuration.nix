@@ -40,11 +40,18 @@
 
   programs = {
     dconf.enable = true;
-    steam.enable = true;
+    steam = {
+      enable = true;
+      extraPackages = with pkgs; [
+        libappindicator-gtk3
+        libdbusmenu-gtk3
+      ];
+    };
   };
   hardware.keyboard.qmk.enable = true;
 
   services = {
+    hardware.bolt.enable = true;
     dbus.enable = true;
     gvfs.enable = true;
     udisks2.enable = true;
@@ -96,11 +103,11 @@
     enable32Bit = true;
     extraPackages32 = with pkgs.pkgsi686Linux; [
       libva
-      driversi686Linux.amdvlk
+      #driversi686Linux.amdvlk
     ]; # steam
-    extraPackages = with pkgs; [
-      amdvlk
-    ];
+    #extraPackages = with pkgs; [
+    #  amdvlk
+    #];
   };
 
   environment.variables.AMD_VULKAN_ICD = "RADV";
@@ -147,8 +154,10 @@
     portal = {
       enable = true;
       wlr.enable = true;
-      extraPortals =
-        [ pkgs.xdg-desktop-portal-gtk pkgs.xdg-desktop-portal-wlr ];
+      extraPortals = [
+        pkgs.xdg-desktop-portal-gtk
+        pkgs.xdg-desktop-portal-wlr
+      ];
     };
   };
 
