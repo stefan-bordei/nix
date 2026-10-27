@@ -55,6 +55,7 @@
     dbus.enable = true;
     gvfs.enable = true;
     udisks2.enable = true;
+    fwupd.enable = true;
     # Battery
     tlp = {
       enable = true;
