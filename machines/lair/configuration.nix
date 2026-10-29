@@ -100,15 +100,21 @@
 
   hardware.graphics = {
     enable = true;
-    #driSupport = true;
     enable32Bit = true;
+
+    # Standard AMD hardware video acceleration (VA-API / VDPAU)
+    extraPackages = with pkgs; [
+      mesa # Ensures Mesa drivers are explicitly present
+      libva # Video Acceleration API
+      libva-vdpau-driver # Driver bridge for VDPAU
+      libvdpau-va-gl # VDPAU driver using VA-API backend
+    ];
+
+    # 32-Bit support for Steam / Wine
     extraPackages32 = with pkgs.pkgsi686Linux; [
-      libva
-      #driversi686Linux.amdvlk
-    ]; # steam
-    #extraPackages = with pkgs; [
-    #  amdvlk
-    #];
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
   };
 
   environment.variables.AMD_VULKAN_ICD = "RADV";
@@ -159,6 +165,7 @@
         pkgs.xdg-desktop-portal-gtk
         pkgs.xdg-desktop-portal-wlr
       ];
+      config.common.default = "*";
     };
   };
 
